@@ -44,6 +44,10 @@ jobs:
         env:
           KAFKA_BOOTSTRAP_SERVERS: localhost:9092
           ENV: development
+          SMTP_HOST: "smtp.test.com"
+          SMTP_PORT: "587"
+          SMTP_USER: "test_user@test.com"
+          SMTP_PASS: "test_password"
         run: |
           pytest --cov=./ --cov-report=xml
 
