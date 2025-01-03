@@ -85,7 +85,7 @@ def process_user_data(user_data):
         html_message = file.read()
 
     # Substitui as variáveis no template
-    html_message = html_message.replace("{{name}}", "John Doe")
+    html_message = html_message.replace("{{name}}", name)
     send_email(email, subject, html_message)
 
 # Endpoint para envio de email não é necessário mais pois o envio de email é feito na função process_invite_messages está só aqui para teste
