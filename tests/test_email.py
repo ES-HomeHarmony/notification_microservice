@@ -42,4 +42,5 @@ class TestSendEmail(TestCase):
         with self.assertRaises(Exception) as context:
             send_email("recipient@test.com", "Test Subject", "<p>This is a test email</p>")
         
-        self.assertIn("SMTP error", str(context.exception))
+        # Verifica se a mensagem da exceção contém o erro esperado
+        self.assertIn("Erro ao enviar email: SMTP error", str(context.exception.detail))
