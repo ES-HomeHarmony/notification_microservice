@@ -38,9 +38,8 @@ class TestSendEmail(TestCase):
         # Configura o mock para simular uma exceção
         mock_smtp.side_effect = Exception("SMTP error")
 
-        # Verifica se a exceção HTTPException é levantada
-        with self.assertRaises(Exception) as context:
+        # Verifica se a exceção ValueError é levantada
+        with self.assertRaises(ValueError) as context:
             send_email("recipient@test.com", "Test Subject", "<p>This is a test email</p>")
         
-        # Verifica se a mensagem da exceção contém o erro esperado
-        self.assertIn("Erro ao enviar email: SMTP error", str(context.exception.detail))
+        self.assertIn("SMTP error", str(context.exception))

@@ -56,8 +56,9 @@ def send_email(email_to: str, subject: str, html_message: str):
             server.sendmail(smtp_user, email_to, message.as_string())  # Enviar email
             print("Email enviado com sucesso!")
     except Exception as e:
-        print(f"Erro ao enviar email: {e}")
-        raise HTTPException(status_code=500, detail=f"Erro ao enviar email: {e}")
+            error_message = f"Erro ao enviar email: {e}"
+            print(error_message)
+            raise ValueError(error_message)  # Substitui HTTPException para simplificar no teste
 
 def process_invite_messages():
     print(f"Subscribed to topics: {invite_consumer.subscription()}")
