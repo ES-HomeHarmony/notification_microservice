@@ -32,7 +32,6 @@ class TestSendEmail(TestCase):
             email_to,
             ANY
         )
-
     @patch("smtplib.SMTP")
     def test_send_email_failure(self, mock_smtp):
         # Configura o mock para simular uma exceção
@@ -41,5 +40,6 @@ class TestSendEmail(TestCase):
         # Verifica se a exceção ValueError é levantada
         with self.assertRaises(ValueError) as context:
             send_email("recipient@test.com", "Test Subject", "<p>This is a test email</p>")
-        
-        self.assertIn("SMTP error", str(context.exception))
+
+        # Verifica se a mensagem da exceção contém o erro esperado
+        self.assertIn("Erro ao enviar email: SMTP error", str(context.exception))
