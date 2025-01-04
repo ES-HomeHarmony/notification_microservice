@@ -66,10 +66,14 @@ def process_invite_messages():
         try:
             invite_data = message.value
             action = invite_data.get("action")
+            user_data = invite_data.get("user_data")
             if action == "create_user":
-                user_data = invite_data.get("user_data")
                 if user_data:
                     process_user_data(user_data)
+            if action == "upload_contract":
+                if user_data:
+                    process_contract_data(user_data)
+                
         except Exception:
             pass  # Ignora erros ao processar a mensagem
 
@@ -88,6 +92,22 @@ def process_user_data(user_data):
     # Substitui as variáveis no template
     html_message = html_message.replace("{{name}}", name)
     send_email(email, subject, html_message)
+
+def process_contract_data(contract_data):
+    name = contract_data.get("name")
+    email = contract_data.get("email")
+    subject="Contract Uploaded!"
+    # Personaliza o assunto e o corpo do e-mail
+    template_path = "templates/contract.html"
+
+    # Carrega o conteúdo do arquivo HTML
+    with open(template_path, 'r', encoding='utf-8') as file:
+        html_message = file.read()
+
+    # Substitui as variáveis no template
+    html_message = html_message.replace("{{name}}", name)
+    send_email(email, subject, html_message)
+
 
 # Endpoint para envio de email não é necessário mais pois o envio de email é feito na função process_invite_messages está só aqui para teste
 # @app.post("/send-email/")

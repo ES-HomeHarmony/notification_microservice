@@ -42,3 +42,25 @@ def test_process_invite_messages_exception(mock_process_user_data, mock_invite_c
 
     # Assert that the exception was handled (process_user_data was called, but no crash)
     mock_process_user_data.assert_called_once_with(kafka_message["user_data"])
+
+@patch("app.main.invite_consumer")
+@patch("app.main.process_contract_data")
+def test_process_upload_contract_success(mock_process_contract_data, mock_invite_consumer):
+    # Mock Kafka consumer behavior for a valid "upload_contract" message
+    kafka_message2 = {
+        "action": "upload_contract",
+        "user_data": {
+            "name": "John Doe",
+            "email": "john.doe@example.com"
+        }
+    }
+    mock_message = MagicMock()
+    mock_message.value = kafka_message2
+    mock_invite_consumer.__iter__.return_value = [mock_message]
+
+    # Call the function
+    process_invite_messages()
+
+    # Assert that process_contract_data was called with the correct contract data
+    mock_process_contract_data.assert_called_once_with(kafka_message2["user_data"])
+
