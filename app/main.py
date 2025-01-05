@@ -73,7 +73,9 @@ def process_invite_messages():
             if action == "upload_contract":
                 if user_data:
                     process_contract_data(user_data)
-                
+            if action == "expense_created":
+                if user_data:
+                    process_expense_created(user_data)
         except Exception:
             pass  # Ignora erros ao processar a mensagem
 
@@ -94,6 +96,7 @@ def process_user_data(user_data):
     send_email(email, subject, html_message)
 
 def process_contract_data(contract_data):
+    print("Contract uploaded")
     name = contract_data.get("name")
     email = contract_data.get("email")
     subject="Contract Uploaded!"
@@ -107,6 +110,60 @@ def process_contract_data(contract_data):
     # Substitui as variáveis no template
     html_message = html_message.replace("{{name}}", name)
     send_email(email, subject, html_message)
+
+def process_expense_created(expense_data):
+    print(f"Recebendo dados de despesa: {expense_data}")
+    
+    try:
+        # Validar a estrutura da mensagem
+
+        expense_details = expense_data.get("expense_details")
+        users = expense_data.get("users")
+
+        if not expense_details:
+            raise ValueError("Detalhes da despesa não encontrados.")
+        if not users or len(users) == 0:
+            raise ValueError("Nenhum usuário encontrado na mensagem.")
+
+        print("Dados validados com sucesso.")
+        
+        # Dados da despesa
+        title = expense_details.get("title", "Sem título")
+        amount = str(expense_details.get("amount", "0.0"))
+        description = expense_details.get("description", "Sem descrição")
+        deadline_date = expense_details.get("deadline_date", "Sem data")
+        subject = "Expense Created!"
+
+        print(f"Detalhes da despesa: título={title}, valor={amount}, descrição={description}, data limite={deadline_date}")
+        
+        # Carregar o template do e-mail
+        template_path = "templates/expense.html"
+        with open(template_path, 'r', encoding='utf-8') as file:
+            html_template = file.read()
+
+        for user in users:
+            print(f"Processando usuário: {user}")
+            name = user.get("name", "Usuário desconhecido")
+            email = user.get("email")
+
+            if not email:
+                print(f"Usuário {name} não tem um e-mail válido, ignorando.")
+                continue
+
+            # Personaliza o HTML para o usuário
+            html_message = html_template.replace("{{name}}", name)
+            html_message = html_message.replace("{{title}}", title)
+            html_message = html_message.replace("{{amount}}", amount)
+            html_message = html_message.replace("{{deadline_date}}", deadline_date)
+
+          
+
+            # Envia o e-mail
+            send_email(email, subject, html_message)
+            print(f"E-mail enviado para {email}")
+    
+    except Exception as e:
+        print(f"Erro ao processar expense_created: {e}")
 
 
 # Endpoint para envio de email não é necessário mais pois o envio de email é feito na função process_invite_messages está só aqui para teste
