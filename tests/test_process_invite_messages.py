@@ -64,3 +64,31 @@ def test_process_upload_contract_success(mock_process_contract_data, mock_invite
     # Assert that process_contract_data was called with the correct contract data
     mock_process_contract_data.assert_called_once_with(kafka_message2["user_data"])
 
+
+@patch("app.main.invite_consumer")
+@patch("app.main.process_expense_created")
+def test_process_expense_created(mock_process_contract_data, mock_invite_consumer):
+    # Mock Kafka consumer behavior for a valid "upload_contract" message
+    kafka_message2 = {
+        "action": "expense_created",
+        "user_data": {
+            "expense_details": {
+            "title": "Água",
+            "amount": 12,
+            "deadline_date": "2025-01-15"
+            },
+            "users": [
+            {"email": "user1@example.com", "name": "Usuário 1"},
+            {"email": "user2@example.com", "name": "Usuário 2"}
+            ]
+        }
+    }
+    mock_message = MagicMock()
+    mock_message.value = kafka_message2
+    mock_invite_consumer.__iter__.return_value = [mock_message]
+
+    # Call the function
+    process_invite_messages()
+
+    # Assert that process_contract_data was called with the correct contract data
+    mock_process_contract_data.assert_called_once_with(kafka_message2["user_data"])
