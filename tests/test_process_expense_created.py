@@ -70,18 +70,32 @@ def test_process_expense_created_empty_users(capfd):
     captured = capfd.readouterr()
     assert "Erro ao processar expense_created: Nenhum usuário encontrado na mensagem." in captured.out
 
-def test_process_expense_created_user_without_email(capfd):
-    """Teste para verificar o comportamento quando um usuário não tem e-mail válido."""
+@patch("app.main.send_email")
+def test_process_expense_created_user_without_email(mock_send_email, capfd):
+    """Testa comportamento ao processar usuários com e sem e-mail."""
+    
     expense_data = {
         "expense_details": {"title": "Energia", "amount": 50, "deadline_date": "2025-02-01"},
         "users": [
-            {"name": "Usuário Sem Email"},  # Sem e-mail
-            {"email": "valid@example.com", "name": "Usuário Válido"}
+            {"name": "Usuário Sem Email"},  # Usuário sem e-mail
+            {"email": "valid@example.com", "name": "Usuário Válido"}  # Usuário válido
         ]
     }
+
+    # Executa a função
     process_expense_created(expense_data)
 
     # Captura a saída padrão
     captured = capfd.readouterr()
+
+    # Verifica mensagens no log
     assert "Usuário Usuário Sem Email não tem um e-mail válido, ignorando." in captured.out
     assert "E-mail enviado para valid@example.com" in captured.out
+
+    # Verifica que o `send_email` foi chamado apenas uma vez (para o usuário válido)
+    mock_send_email.assert_called_once()
+
+    # Verifica os argumentos principais da chamada
+    args, kwargs = mock_send_email.call_args
+    assert args[0] == "valid@example.com"  # Verifica o e-mail do destinatário
+    assert args[1] == "Expense Created!"  # Verifica o assunto do e-mail
