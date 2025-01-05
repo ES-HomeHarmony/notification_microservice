@@ -92,3 +92,43 @@ def test_process_expense_created(mock_process_contract_data, mock_invite_consume
 
     # Assert that process_contract_data was called with the correct contract data
     mock_process_contract_data.assert_called_once_with(kafka_message2["user_data"])
+
+
+@patch("app.main.invite_consumer")
+@patch("app.main.process_new_issue")
+def test_process_new_issue(mock_process_new_issue, mock_invite_consumer):
+    """Testa o processamento da mensagem Kafka para 'new_issue'."""
+    
+    # Simula uma mensagem Kafka para 'new_issue'
+    kafka_message = {
+        "action": "new_issue",
+        "user_data": {
+            "issue": {
+                "title": "Leak in kitchen",
+                "description": "There is a water leak under the sink.",
+                "status": "Open",
+                "priority": "High"
+            },
+            "house_name": "Green Valley Apartments",
+            "tenant_name": "John Doe",
+            "users": [
+                {"email": "user1@example.com", "name": "Manager 1"},
+                {"email": "user2@example.com", "name": "Manager 2"}
+            ]
+        }
+    }
+    
+    # Mock da mensagem Kafka
+    mock_message = MagicMock()
+    mock_message.value = kafka_message
+    mock_invite_consumer.__iter__.return_value = [mock_message]
+
+    # Executa a função principal de processamento
+    process_invite_messages()
+
+    # Verifica se o método 'process_new_issue' foi chamado com os dados corretos
+    mock_process_new_issue.assert_called_once_with(kafka_message["user_data"])
+
+
+    # Verifica se o método 'process_new_issue' foi chamado com os dados corretos
+    mock_process_new_issue.assert_called_once_with(kafka_message["user_data"])
