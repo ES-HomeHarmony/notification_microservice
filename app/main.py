@@ -76,6 +76,9 @@ def process_invite_messages():
             if action == "expense_created":
                 if user_data:
                     process_expense_created(user_data)
+            if action == "new_issue":
+                if user_data:
+                    process_new_issue(user_data)
         except Exception:
             pass  # Ignora erros ao processar a mensagem
 
@@ -165,7 +168,77 @@ def process_expense_created(expense_data):
     except Exception as e:
         print(f"Erro ao processar expense_created: {e}")
 
+def process_new_issue(issue_data):
+    #  message = {
+    #     "action": "new_issue",
+    #     "user_data":{
+    #         "issue": {
+    #             "title": issue.title,
+    #             "description": issue.description,
+    #             "status": issue.status,
+    #             "priority": issue.priority
+    #         },
+    #         "house_name": house_details.name,
+    #         "tenant_name": tenant_main[0]["name"],
+    #         "users": user_data_list
+    #     }
+    #}
+    print(f"Recebendo dados de nova issue: {issue_data}")
+    try:
+        # Validar a estrutura da mensagem
 
+        issue = issue_data.get("issue")
+        house_name = issue_data.get("house_name")
+        tenant_name = issue_data.get("tenant_name")
+        users = issue_data.get("users")
+
+        if not issue:
+            raise ValueError("Detalhes da issue não encontrados.")
+        if not users or len(users) == 0:
+            raise ValueError("Nenhum usuário encontrado na mensagem.")
+
+        print("Dados validados com sucesso.")
+        
+        # Dados da issue
+        title = issue.get("title", "Sem título")
+        description = issue.get("description", "Sem descrição")
+        status = issue.get("status", "Sem status")
+        priority = issue.get("priority", "Sem prioridade")
+        subject = "New Issue Created!"
+
+        print(f"Detalhes da issue: título={title}, descrição={description}, status={status}, prioridade={priority}")
+        
+        # Carregar o template do e-mail
+        template_path = "templates/issue.html"
+        with open(template_path, 'r', encoding='utf-8') as file:
+            html_template = file.read()
+
+        for user in users:
+            print(f"Processando usuário: {user}")
+            name = user.get("name", "Usuário desconhecido")
+            email = user.get("email")
+
+            if not email:
+                print(f"Usuário {name} não tem um e-mail válido, ignorando.")
+                continue
+
+            # Personaliza o HTML para o usuário
+            html_message = html_template.replace("{{name}}", name)
+            html_message = html_message.replace("{{title}}", title)
+            html_message = html_message.replace("{{description}}", description)
+            html_message = html_message.replace("{{status}}", status)
+            html_message = html_message.replace("{{priority}}", priority)
+            html_message = html_message.replace("{{house_name}}", house_name)
+            html_message = html_message.replace("{{tenant_name}}", tenant_name)
+
+            # Envia o e-mail
+            send_email(email, subject, html_message)
+            print(f"E-mail enviado para {email}")
+            
+    except Exception as e:
+        print(f"Erro ao processar expense_created: {e}")
+
+    
 # Endpoint para envio de email não é necessário mais pois o envio de email é feito na função process_invite_messages está só aqui para teste
 # @app.post("/send-email/")
 # async def send_email_endpoint(email: EmailRequest, background_tasks: BackgroundTasks):
