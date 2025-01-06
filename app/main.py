@@ -79,6 +79,9 @@ def process_invite_messages():
             if action == "new_issue":
                 if user_data:
                     process_new_issue(user_data)
+            if action == "tenant_paid":
+                if user_data:
+                    process_tenant_paid(user_data)
         except Exception:
             pass  # Ignora erros ao processar a mensagem
 
@@ -169,20 +172,6 @@ def process_expense_created(expense_data):
         print(f"Erro ao processar expense_created: {e}")
 
 def process_new_issue(issue_data):
-    #  message = {
-    #     "action": "new_issue",
-    #     "user_data":{
-    #         "issue": {
-    #             "title": issue.title,
-    #             "description": issue.description,
-    #             "status": issue.status,
-    #             "priority": issue.priority
-    #         },
-    #         "house_name": house_details.name,
-    #         "tenant_name": tenant_main[0]["name"],
-    #         "users": user_data_list
-    #     }
-    #}
     print(f"Recebendo dados de nova issue: {issue_data}")
     try:
         # Validar a estrutura da mensagem
@@ -237,6 +226,46 @@ def process_new_issue(issue_data):
             
     except Exception as e:
         print(f"Erro ao processar expense_created: {e}")
+
+def process_tenant_paid(tenant_data):
+    print(f"Recebendo dados de pagamento de inquilino: {tenant_data}")
+    try:
+        # Validar a estrutura da mensagem
+
+        email = tenant_data.get("email")
+        name = tenant_data.get("name")
+        tenant_name = tenant_data.get("tenant_name")
+        expense_name = tenant_data.get("expense_name")
+        amount = tenant_data.get("amount")
+        house_name = tenant_data.get("house_name")
+
+        if not email:
+            raise ValueError("Email do locador não encontrado.")
+        print("Dados validados com sucesso.")
+        
+        # Dados do pagamento
+        subject = "Tenant Payment Received!"
+
+        print(f"Detalhes do pagamento: locador={name}, inquilino={tenant_name}, despesa={expense_name}, valor={amount}, casa={house_name}")
+        
+        # Carregar o template do e-mail
+        template_path = "templates/tenant_payment.html"
+        with open(template_path, 'r', encoding='utf-8') as file:
+            html_template = file.read()
+
+        # Personaliza o HTML para o usuário
+        html_message = html_template.replace("{{name}}", name)
+        html_message = html_message.replace("{{tenant_name}}", tenant_name)
+        html_message = html_message.replace("{{expense_name}}", expense_name)
+        html_message = html_message.replace("{{amount}}", str(amount))
+        html_message = html_message.replace("{{house_name}}", house_name)
+
+        # Envia o e-mail
+        send_email(email, subject, html_message)
+        print(f"E-mail enviado para {email}")
+            
+    except Exception as e:
+        print(f"Erro ao processar tenant_paid: {e}")
 
     
 # Endpoint para envio de email não é necessário mais pois o envio de email é feito na função process_invite_messages está só aqui para teste
