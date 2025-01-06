@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tenant Payment Received</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            background-color: #ffffff;
+            border: 1px solid #dddddd;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #4CAF50;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 20px;
+            text-align: center;
+        }
+        .content p {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .footer {
+            background-color: #f1f1f1;
+            color: #666666;
+            padding: 10px 20px;
+            font-size: 12px;
+            text-align: center;
+            border-top: 1px solid #dddddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Payment Received</h1>
+        </div>
+        <div class="content">
+            <p>Dear <strong>{{name}}</strong>,</p>
+            <p>We are excited to inform you that a payment has been received from your tenant <strong>{{tenant_name}}</strong>.</p>
+            <p><strong>Payment Details:</strong></p>
+            <ul style="list-style-type: none; padding: 0;">
+                <li><strong>Expense:</strong> {{expense_name}}</li>
+                <li><strong>Amount:</strong> {{amount}}€</li>
+                <li><strong>Property:</strong> {{house_name}}</li>
+            </ul>
+            <p>If you have any questions or need further assistance, please feel free to reach out to us.</p>
+        </div>
+        <div class="footer">
+            &copy; 2025 Home Harmony. All rights reserved.<br>
+        </div>
+    </div>
+</body>
+</html>
