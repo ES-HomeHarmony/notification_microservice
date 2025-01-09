@@ -15,7 +15,7 @@ ENV SMTP_USER=homeharmony2024es@gmail.com \
     SMTP_PASS='tsub thsu gpcc lgpc' \
     SMTP_HOST=smtp.gmail.com \
     SMTP_PORT=587 \
-    KAFKA_BOOTSTRAP_SERVERS=b-3.mskcluster.1q1fbl.c2.kafka.eu-north-1.amazonaws.com:9092,b-1.mskcluster.1q1fbl.c2.kafka.eu-north-1.amazonaws.com:9092,b-2.mskcluster.1q1fbl.c2.kafka.eu-north-1.amazonaws.com:9092
+    KAFKA_BOOTSTRAP_SERVERS=b-1.mskcluster.l2ty7c.c2.kafka.eu-north-1.amazonaws.com:9092,b-2.mskcluster.l2ty7c.c2.kafka.eu-north-1.amazonaws.com:9092,b-3.mskcluster.l2ty7c.c2.kafka.eu-north-1.amazonaws.com:9092
                         
 # Exponha a porta do microserviço
 EXPOSE 8000
