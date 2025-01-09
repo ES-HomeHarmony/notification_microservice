@@ -9,11 +9,14 @@ import os
 from kafka import KafkaConsumer
 import threading
 import json
-
+import logging
 # Carrega as variáveis de ambiente
 load_dotenv(".env/development.env")
 
+
 app = FastAPI()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("email_service")
 
 # Kafka consumer setup
 invite_consumer = KafkaConsumer(
@@ -47,24 +50,21 @@ def send_email(email_to: str, subject: str, html_message: str):
 
     # Conectar ao servidor SMTP e enviar o email
     try:
-        print("Conectando ao servidor SMTP...")
         with smtplib.SMTP(smtp_server, smtp_port) as server:
             server.starttls()  # Ativa o STARTTLS
-            print("Autenticando...")
             server.login(smtp_user, smtp_pass)  # Autenticar
-            print("Enviando email...")
             server.sendmail(smtp_user, email_to, message.as_string())  # Enviar email
-            print("Email enviado com sucesso!")
+            logger.info("Email enviado com sucesso!")
     except Exception as e:
             error_message = f"Erro ao enviar email: {e}"
-            print(error_message)
             raise ValueError(error_message)  # Substitui HTTPException para simplificar no teste
 
 def process_invite_messages():
-    print(f"Subscribed to topics: {invite_consumer.subscription()}")
+    logger.info(f"Subscribed to topics: {invite_consumer.subscription()}")
     for message in invite_consumer:
         try:
             invite_data = message.value
+            logger.info(f"Received message: {invite_data}")
             action = invite_data.get("action")
             user_data = invite_data.get("user_data")
             if action == "create_user":
@@ -82,11 +82,15 @@ def process_invite_messages():
             if action == "tenant_paid":
                 if user_data:
                     process_tenant_paid(user_data)
-        except Exception:
-            pass  # Ignora erros ao processar a mensagem
+        except ValueError as ve:
+            logger.warning(f"Validation error: {ve}")
+        except Exception as e:
+            logger.error(f"Unexpected error: {e}", exc_info=True)
+            
 
 # Função para lógica de processamento dos dados do usuário
 def process_user_data(user_data):
+    logger.info("User created")
     name = user_data.get("name")
     email = user_data.get("email")
     subject="Welcome to Home Harmony!"
@@ -100,9 +104,10 @@ def process_user_data(user_data):
     # Substitui as variáveis no template
     html_message = html_message.replace("{{name}}", name)
     send_email(email, subject, html_message)
+    logger.info(f"Email enviado para {email}")
 
 def process_contract_data(contract_data):
-    print("Contract uploaded")
+    logger.info("Contract uploaded")
     name = contract_data.get("name")
     email = contract_data.get("email")
     subject="Contract Uploaded!"
@@ -116,10 +121,10 @@ def process_contract_data(contract_data):
     # Substitui as variáveis no template
     html_message = html_message.replace("{{name}}", name)
     send_email(email, subject, html_message)
+    logger.info(f"Email enviado para {email}")
 
 def process_expense_created(expense_data):
-    print(f"Recebendo dados de despesa: {expense_data}")
-    
+    print(f"Recebendo dados de despesa criada: {expense_data}")
     try:
         # Validar a estrutura da mensagem
 
@@ -127,11 +132,13 @@ def process_expense_created(expense_data):
         users = expense_data.get("users")
 
         if not expense_details:
+            logger.error("Detalhes da despesa não encontrados.")
             raise ValueError("Detalhes da despesa não encontrados.")
         if not users or len(users) == 0:
+            logger.error("Nenhum usuário encontrado na mensagem.")
             raise ValueError("Nenhum usuário encontrado na mensagem.")
 
-        print("Dados validados com sucesso.")
+        logger.info("Dados validados com sucesso.")
         
         # Dados da despesa
         title = expense_details.get("title", "Sem título")
@@ -140,7 +147,7 @@ def process_expense_created(expense_data):
         deadline_date = expense_details.get("deadline_date", "Sem data")
         subject = "Expense Created!"
 
-        print(f"Detalhes da despesa: título={title}, valor={amount}, descrição={description}, data limite={deadline_date}")
+        logger.info(f"Detalhes da despesa: título={title}, valor={amount}, descrição={description}, data limite={deadline_date}")
         
         # Carregar o template do e-mail
         template_path = "templates/expense.html"
@@ -148,7 +155,7 @@ def process_expense_created(expense_data):
             html_template = file.read()
 
         for user in users:
-            print(f"Processando usuário: {user}")
+            logger.info(f"Processar Utilizador: {user}")
             name = user.get("name", "Usuário desconhecido")
             email = user.get("email")
 
@@ -167,12 +174,14 @@ def process_expense_created(expense_data):
             # Envia o e-mail
             send_email(email, subject, html_message)
             print(f"E-mail enviado para {email}")
+            logger.info(f"E-mail enviado para {email}")
     
     except Exception as e:
         print(f"Erro ao processar expense_created: {e}")
+        logger.error(f"Erro ao processar expense_created: {e}")
 
 def process_new_issue(issue_data):
-    print(f"Recebendo dados de nova issue: {issue_data}")
+    logger.info(f"Recebendo dados de nova issue: {issue_data}")
     try:
         # Validar a estrutura da mensagem
 
@@ -187,6 +196,7 @@ def process_new_issue(issue_data):
             raise ValueError("Nenhum usuário encontrado na mensagem.")
 
         print("Dados validados com sucesso.")
+        logger.info("Dados validados com sucesso.")
         
         # Dados da issue
         title = issue.get("title", "Sem título")
@@ -196,6 +206,7 @@ def process_new_issue(issue_data):
         subject = "New Issue Created!"
 
         print(f"Detalhes da issue: título={title}, descrição={description}, status={status}, prioridade={priority}")
+        logger.info(f"Detalhes da issue: título={title}, descrição={description}, status={status}, prioridade={priority}")
         
         # Carregar o template do e-mail
         template_path = "templates/issue.html"
@@ -223,12 +234,13 @@ def process_new_issue(issue_data):
             # Envia o e-mail
             send_email(email, subject, html_message)
             print(f"E-mail enviado para {email}")
+            logger.info(f"E-mail enviado para {email}")
             
     except Exception as e:
         print(f"Erro ao processar expense_created: {e}")
 
 def process_tenant_paid(tenant_data):
-    print(f"Recebendo dados de pagamento de inquilino: {tenant_data}")
+    logger.info(f"Recebendo dados de pagamento de inquilino: {tenant_data}")
     try:
         # Validar a estrutura da mensagem
 
@@ -242,11 +254,13 @@ def process_tenant_paid(tenant_data):
         if not email:
             raise ValueError("Email do locador não encontrado.")
         print("Dados validados com sucesso.")
+        logger.info("Dados validados com sucesso.")
         
         # Dados do pagamento
         subject = "Tenant Payment Received!"
 
         print(f"Detalhes do pagamento: locador={name}, inquilino={tenant_name}, despesa={expense_name}, valor={amount}, casa={house_name}")
+        logger.info(f"Detalhes do pagamento: locador={name}, inquilino={tenant_name}, despesa={expense_name}, valor={amount}, casa={house_name}")
         
         # Carregar o template do e-mail
         template_path = "templates/tenant_payment.html"
@@ -263,6 +277,7 @@ def process_tenant_paid(tenant_data):
         # Envia o e-mail
         send_email(email, subject, html_message)
         print(f"E-mail enviado para {email}")
+        logger.info(f"E-mail enviado para {email}")
             
     except Exception as e:
         print(f"Erro ao processar tenant_paid: {e}")
