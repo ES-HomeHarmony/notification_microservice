@@ -50,17 +50,13 @@ def send_email(email_to: str, subject: str, html_message: str):
 
     # Conectar ao servidor SMTP e enviar o email
     try:
-        logger.info("Conectando ao servidor SMTP...")
         with smtplib.SMTP(smtp_server, smtp_port) as server:
             server.starttls()  # Ativa o STARTTLS
-            logger.info("Autenticando...")
             server.login(smtp_user, smtp_pass)  # Autenticar
-            logger.info("Enviando email...")
             server.sendmail(smtp_user, email_to, message.as_string())  # Enviar email
             logger.info("Email enviado com sucesso!")
     except Exception as e:
             error_message = f"Erro ao enviar email: {e}"
-            logger.info(error_message)
             raise ValueError(error_message)  # Substitui HTTPException para simplificar no teste
 
 def process_invite_messages():
@@ -165,7 +161,6 @@ def process_expense_created(expense_data):
 
             if not email:
                 print(f"Usuário {name} não tem um e-mail válido, ignorando.")
-                logger.warning(f"Usuário {name} não tem um e-mail válido, ignorando.")
                 continue
 
             # Personaliza o HTML para o usuário
@@ -225,7 +220,6 @@ def process_new_issue(issue_data):
 
             if not email:
                 print(f"Usuário {name} não tem um e-mail válido, ignorando.")
-                logger.warning(f"Usuário {name} não tem um e-mail válido, ignorando.")
                 continue
 
             # Personaliza o HTML para o usuário
@@ -244,7 +238,6 @@ def process_new_issue(issue_data):
             
     except Exception as e:
         print(f"Erro ao processar expense_created: {e}")
-        logger.error(f"Erro ao processar expense_created: {e}")
 
 def process_tenant_paid(tenant_data):
     logger.info(f"Recebendo dados de pagamento de inquilino: {tenant_data}")
@@ -288,7 +281,6 @@ def process_tenant_paid(tenant_data):
             
     except Exception as e:
         print(f"Erro ao processar tenant_paid: {e}")
-        logger.error(f"Erro ao processar tenant_paid: {e}")
 
     
 # Endpoint para envio de email não é necessário mais pois o envio de email é feito na função process_invite_messages está só aqui para teste
